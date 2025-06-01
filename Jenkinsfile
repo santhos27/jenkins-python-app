@@ -1,6 +1,5 @@
 pipeline {
-    agent any
-
+    agent { label 'local_kai' }  // this should match the slave's label
     environment {
         IMAGE_NAME = 'santhoskumardocker/flaskapp' // change to your DockerHub username/repo
         IMAGE_TAG = 'latest'
@@ -9,6 +8,7 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
+                sh 'whoami'
                 sh 'python3 --version'
                 sh 'pip --version'
                 git 'https://github.com/santhos27/jenkins-python-app.git'
@@ -18,8 +18,12 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                python3 -m venv venv
-                . venv/bin/activate
+                ls
+                if [ -d "flaskapp" ]; then
+                  rm -rf flaskapp
+                fi
+                python3 -m venv flaskapp
+                . flaskapp/bin/activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
                 '''
@@ -29,7 +33,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '''
-                . venv/bin/activate
+                . flaskapp/bin/activate
                 python3 test_app.py
                 '''
             }
@@ -57,8 +61,10 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 sh '''
+                docker --version
+                docker ps -a
                 docker rm -f flask-app || true
-                docker run -d --name flask-app -p 5000:5000 $IMAGE_NAME:$IMAGE_TAG
+                docker run -d --name flask-app -p 5003:5002 $IMAGE_NAME:$IMAGE_TAG
                 '''
             }
         }
