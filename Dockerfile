@@ -12,7 +12,7 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 # Make port 5000 available to the world outside this container
-EXPOSE 5001
+EXPOSE 5002
 
 # Run app.py when the container launches
 CMD ["python", "app.py"]
